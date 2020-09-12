@@ -1,8 +1,17 @@
+// 네이버 Papago NMT API 예제
+var express = require("express")
+var app = express()
+var client_id = "ipJ5Vxrkks6XwgINV5Pb"
+var client_secret = "pV2sEzjZlI"
+let port = 81
+
+// discord
 const Discord = require(`discord.js`)
 const client = new Discord.Client()
 const axios = require("axios")
 const config = require("./config.json")
 
+// default
 const baby = {
     year: 0,
     feed: 0,
@@ -31,12 +40,87 @@ oldBaby = () => {
     console.log("year is" + baby.year)
 }
 
+// ------- 디스코드가 동작합니다 --------
 client.on("message", (message) => {
+    // 번역기 (클릭해야 답변이 옵니다)
+    if (message.content.startsWith("! 파파고 ")) {
+        KOREANWORD = message.content.replace("! 파파고 ", "")
+        app.get("/translate", function (req, res) {
+            var api_url = "https://openapi.naver.com/v1/papago/n2mt"
+            var request = require("request")
+            var options = {
+                url: api_url,
+                form: { source: "ko", target: "ja", text: KOREANWORD },
+                headers: { "X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret },
+            }
+            options.form.text = KOREANWORD
+            console.log(options)
+            function translateK() {
+                request.post(options, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" })
+                        res.end(body)
+                        var come = JSON.parse(body)
+                        TRANS = come.message.result.translatedText
+                        const KEmbedK = new Discord.MessageEmbed()
+                            .setColor("#ffc0cb")
+                            .setTitle("TRANSLATED!")
+                            .setDescription(TRANS)
+                        message.channel.send(KEmbedK)
+                    } else {
+                        res.status(response.statusCode).end()
+                        console.log("error = " + response.statusCode)
+                    }
+                })
+            }
+            translateK()
+        })
+        const listener = app.listen(port, function () {
+            message.reply(`http://127.0.0.1:${listener.address().port}/translate`)
+            port++
+        })
+    }
+    if (message.content.startsWith("! papa ")) {
+        JAPANWORD = message.content.replace("! papa ", "")
+        app.get("/translate", function (req, res) {
+            var api_url = "https://openapi.naver.com/v1/papago/n2mt"
+            var request = require("request")
+            var options2 = {
+                url: api_url,
+                form: { source: "ja", target: "ko", text: JAPANWORD },
+                headers: { "X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret },
+            }
+            console.log(options2)
+            request.post(options2, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" })
+                    res.end(body)
+                    var come = JSON.parse(body)
+                    TRANS__J = come.message.result.translatedText
+                    const transEmbed = new Discord.MessageEmbed()
+                        .setColor("#ffc0cb")
+                        .setTitle(TRANS__J)
+                        .setDescription(`${JAPANWORD} \n 파파고 번역기로 일본어를 번역했습니다.`)
+                        .setThumbnail(
+                            "https://purepng.com/public/uploads/medium/purepng.com-tranlate-icon-android-lollipopsymbolsiconsgooglegoogle-iconsandroid-lollipoplollipop-iconsandroid-50-7215225972873jvis.png"
+                        )
+                    message.channel.send(transEmbed)
+                } else {
+                    res.status(response.statusCode).end()
+                    console.log("error = " + response.statusCode)
+                }
+            })
+        })
+        const listener = app.listen(port, function () {
+            message.reply(` GO! => http://127.0.0.1:${listener.address().port}/translate`)
+            port++
+        })
+    }
     // 등장하기
     if (message.content == "! 상태") {
         const stateEmbed = new Discord.MessageEmbed()
             .setColor("#ffc0cb")
-            .setTitle(`(${baby.chin}o^～^o${baby.chin}) Eypin은 무럭무럭 자라 ${baby.year}살이야!`)
+            .setTitle(`(${baby.chin}o^～^o${baby.chin}) 무럭무럭 자라 ${baby.year}kg이야!`)
             .setImage(baby.image)
         message.channel.send(stateEmbed)
     }
@@ -61,13 +145,15 @@ client.on("message", (message) => {
             .setColor("#ffc0cb")
             .setTitle(EMBEDTEXT)
             .setThumbnail(baby.image)
+            .setDescription(`LV.${baby.year}`)
+            .setThumbnail(baby.image)
         message.channel.send(feedEmbed)
     }
     // 일어 등장하기
     if (message.content == "! 様子") {
         const stateEmbed = new Discord.MessageEmbed()
             .setColor("#ffc0cb")
-            .setTitle(`(${baby.chin}o^～^o${baby.chin}) もはや Eypinは ${baby.year}歳になりました!`)
+            .setTitle(`(${baby.chin}o^～^o${baby.chin}) もはや ${baby.year}kgになりました!`)
         message.channel.send(stateEmbed)
     }
     //일어 밥먹기
@@ -92,6 +178,7 @@ client.on("message", (message) => {
         const feedEmbed = new Discord.MessageEmbed()
             .setColor("#ffc0cb")
             .setTitle(EMBEDTEXT)
+            .setDescription(`LV.${baby.year}`)
             .setThumbnail(baby.image)
         message.channel.send(feedEmbed)
     }
