@@ -1,15 +1,13 @@
 // 네이버 Papago NMT API 예제
 var express = require("express")
 var app = express()
-var client_id = "ipJ5Vxrkks6XwgINV5Pb"
-var client_secret = "pV2sEzjZlI"
-let port = 81
 
 // discord
 const Discord = require(`discord.js`)
 const client = new Discord.Client()
 const axios = require("axios")
 const config = require("./config.json")
+const qs = require("querystring")
 
 // default
 const baby = {
@@ -40,81 +38,103 @@ oldBaby = () => {
     console.log("year is" + baby.year)
 }
 
+// 파파고 클래스
+
+const TRANSLATE_METHODS = {
+    nmt: "nmt",
+    smt: "smt",
+}
+
+class Papago {
+    constructor(papagoConfig) {
+        this.papagoConfig = papagoConfig
+    }
+
+    async lookup(term, { method }) {
+        if (this.papagoConfig == null) {
+            throw new Error("Papago instance should be initialized with papagoConfig first")
+        }
+        if (term == null) {
+            throw new Error("Search term should be provided as lookup arguments")
+        }
+
+        const url = method === TRANSLATE_METHODS.smt ? "language/translate" : "papago/n2mt"
+        const params = qs.stringify({
+            source: "ko",
+            target: "ja",
+            text: term,
+        })
+        const papagoConfig = {
+            baseURL: "https://openapi.naver.com/v1/",
+            headers: {
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "x-naver-client-id": this.papagoConfig.NAVER_CLIENT_ID,
+                "x-naver-client-secret": this.papagoConfig.NAVER_CLIENT_SECRET,
+            },
+        }
+        const response = await axios.post(url, params, papagoConfig)
+        return response.data.message.result.translatedText
+    }
+}
+class JapanesPapago {
+    constructor(papagoConfig) {
+        this.papagoConfig = papagoConfig
+    }
+
+    async lookup(term, { method }) {
+        if (this.papagoConfig == null) {
+            throw new Error("Papago instance should be initialized with papagoConfig first")
+        }
+        if (term == null) {
+            throw new Error("Search term should be provided as lookup arguments")
+        }
+
+        const url = method === TRANSLATE_METHODS.smt ? "language/translate" : "papago/n2mt"
+        const params = qs.stringify({
+            source: "ja",
+            target: "ko",
+            text: term,
+        })
+        const papagoConfig = {
+            baseURL: "https://openapi.naver.com/v1/",
+            headers: {
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "x-naver-client-id": this.papagoConfig.NAVER_CLIENT_ID,
+                "x-naver-client-secret": this.papagoConfig.NAVER_CLIENT_SECRET,
+            },
+        }
+        const response = await axios.post(url, params, papagoConfig)
+        return response.data.message.result.translatedText
+    }
+}
+
 // ------- 디스코드가 동작합니다 --------
 client.on("message", (message) => {
-    // 번역기 (클릭해야 답변이 옵니다)
+    if (message.content.startsWith("! papa ")) {
+        KOREANWORD = message.content.replace("! papa ", "")
+        async function main() {
+            const papago = new JapanesPapago({
+                NAVER_CLIENT_ID: config.client_id,
+                NAVER_CLIENT_SECRET: config.client_secret,
+            })
+            const nmtResult = await papago.lookup(KOREANWORD, { method: "nmt" })
+            message.channel.send(nmtResult)
+        }
+        main()
+    }
     if (message.content.startsWith("! 파파고 ")) {
         KOREANWORD = message.content.replace("! 파파고 ", "")
-        app.get("/translate", function (req, res) {
-            var api_url = "https://openapi.naver.com/v1/papago/n2mt"
-            var request = require("request")
-            var options = {
-                url: api_url,
-                form: { source: "ko", target: "ja", text: KOREANWORD },
-                headers: { "X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret },
-            }
-            options.form.text = KOREANWORD
-            console.log(options)
-            function translateK() {
-                request.post(options, function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" })
-                        res.end(body)
-                        var come = JSON.parse(body)
-                        TRANS = come.message.result.translatedText
-                        const KEmbedK = new Discord.MessageEmbed()
-                            .setColor("#ffc0cb")
-                            .setTitle("TRANSLATED!")
-                            .setDescription(TRANS)
-                        message.channel.send(KEmbedK)
-                    } else {
-                        res.status(response.statusCode).end()
-                        console.log("error = " + response.statusCode)
-                    }
-                })
-            }
-            translateK()
-        })
-        const listener = app.listen(port, function () {
-            message.reply(`http://127.0.0.1:${listener.address().port}/translate`)
-            port++
-        })
-    }
-    if (message.content.startsWith("! papa ")) {
-        JAPANWORD = message.content.replace("! papa ", "")
-        app.get("/translate", function (req, res) {
-            var api_url = "https://openapi.naver.com/v1/papago/n2mt"
-            var request = require("request")
-            var options2 = {
-                url: api_url,
-                form: { source: "ja", target: "ko", text: JAPANWORD },
-                headers: { "X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret },
-            }
-            console.log(options2)
-            request.post(options2, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    res.writeHead(200, { "Content-Type": "text/json;charset=utf-8" })
-                    res.end(body)
-                    var come = JSON.parse(body)
-                    TRANS__J = come.message.result.translatedText
-                    const transEmbed = new Discord.MessageEmbed()
-                        .setColor("#ffc0cb")
-                        .setTitle(TRANS__J)
-                        .setDescription(`${JAPANWORD} \n 파파고 번역기로 일본어를 번역했습니다.`)
-                        .setThumbnail(
-                            "https://purepng.com/public/uploads/medium/purepng.com-tranlate-icon-android-lollipopsymbolsiconsgooglegoogle-iconsandroid-lollipoplollipop-iconsandroid-50-7215225972873jvis.png"
-                        )
-                    message.channel.send(transEmbed)
-                } else {
-                    res.status(response.statusCode).end()
-                    console.log("error = " + response.statusCode)
-                }
+        async function main() {
+            // NOTE: populate with your own Client id/secret from https://developers.naver.com/apps
+            const papago = new Papago({
+                NAVER_CLIENT_ID: "ipJ5Vxrkks6XwgINV5Pb",
+                NAVER_CLIENT_SECRET: "pV2sEzjZlI",
             })
-        })
-        const listener = app.listen(port, function () {
-            message.reply(` GO! => http://127.0.0.1:${listener.address().port}/translate`)
-            port++
-        })
+            const nmtResult = await papago.lookup(KOREANWORD, { method: "nmt" })
+            message.channel.send(nmtResult)
+        }
+
+        main()
     }
     // 등장하기
     if (message.content == "! 상태") {
