@@ -9,8 +9,8 @@ https://discord.com/api/oauth2/authorize?client_id=718635113587671110&permission
 ### 1. 정보
 
 : 파파고 번역, 현재 날씨 알아보기, 밥먹고 레벨업하기(뚠뚠해진다!)
-: 파파고는 하단에 링크된 wooramy님의 소스를 참고했습니다.
-`https://gist.github.com/wooramy/c081f171f0227fa9f8a86d590dc30e7f`
+: 파파고는 하단에 링크된 wooramy님의 소스를 참고했습니다.  
+<u>https://gist.github.com/wooramy/c081f171f0227fa9f8a86d590dc30e7f</u>
 
 ### 2-1. 파파고
 
