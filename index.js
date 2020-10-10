@@ -1,7 +1,3 @@
-// 네이버 Papago NMT API 예제
-var express = require("express")
-var app = express()
-
 // discord
 const Discord = require(`discord.js`)
 const client = new Discord.Client()
@@ -111,27 +107,36 @@ class JapanesPapago {
 // ------- 디스코드가 동작합니다 --------
 client.on("message", (message) => {
     if (message.content.startsWith("! papa ")) {
-        KOREANWORD = message.content.replace("! papa ", "")
+        JAPANESWORD = message.content.replace("! papa ", "")
         async function main() {
             const papago = new JapanesPapago({
                 NAVER_CLIENT_ID: config.client_id,
                 NAVER_CLIENT_SECRET: config.client_secret,
             })
-            const nmtResult = await papago.lookup(KOREANWORD, { method: "nmt" })
-            message.channel.send(nmtResult)
+            const nmtResult = await papago.lookup(JAPANESWORD, { method: "nmt" })
+            const feedEmbed = new Discord.MessageEmbed()
+                .setColor("#ffc0cb")
+                .setTitle(nmtResult)
+                .setDescription(`[${JAPANESWORD}]の韓国語ですー！`)
+                .setThumbnail(baby.image)
+            message.channel.send(feedEmbed)
         }
         main()
     }
     if (message.content.startsWith("! 파파고 ")) {
         KOREANWORD = message.content.replace("! 파파고 ", "")
         async function main() {
-            // NOTE: populate with your own Client id/secret from https://developers.naver.com/apps
             const papago = new Papago({
                 NAVER_CLIENT_ID: "ipJ5Vxrkks6XwgINV5Pb",
                 NAVER_CLIENT_SECRET: "pV2sEzjZlI",
             })
             const nmtResult = await papago.lookup(KOREANWORD, { method: "nmt" })
-            message.channel.send(nmtResult)
+            const feedEmbed = new Discord.MessageEmbed()
+                .setColor("#ffc0cb")
+                .setTitle(nmtResult)
+                .setDescription(`[${KOREANWORD}]에 대한 번역입니다.`)
+                .setThumbnail(baby.image)
+            message.channel.send(feedEmbed)
         }
 
         main()
@@ -218,9 +223,6 @@ client.on("message", (message) => {
             } = await axios.get(
                 `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=4fab0aa151dff647eb08468ce01ec59c&units=metric`
             )
-            // message.channel.send(
-            //     `${temp}˚ || It's ${weather[0].main} day! (${baby.chin}o^～^o${baby.chin})`
-            // )
             const embed = new Discord.MessageEmbed()
                 .setColor("#ffc0cb")
                 .setTitle(`${temp}˚, in ${name}`)
