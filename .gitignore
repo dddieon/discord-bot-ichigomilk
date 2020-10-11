@@ -2,3 +2,4 @@
 # token is my secret!
 
 .env
+node_modules
