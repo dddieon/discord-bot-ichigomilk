@@ -23,7 +23,7 @@ client.on("ready", () => {
 
 feedBaby = () => {
     baby.feed += 1
-    console.log("feed 레벨업" + baby.feed)
+    console.log("feed level up" + baby.feed)
 }
 
 fatFace = () => {
