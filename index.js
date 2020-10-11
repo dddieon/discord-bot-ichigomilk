@@ -110,8 +110,8 @@ client.on("message", (message) => {
         JAPANESWORD = message.content.replace("! papa ", "")
         async function main() {
             const papago = new JapanesPapago({
-                NAVER_CLIENT_ID: config.client_id,
-                NAVER_CLIENT_SECRET: config.client_secret,
+                NAVER_CLIENT_ID: process.env.client_id,
+                NAVER_CLIENT_SECRET: process.env.client_secret,
             })
             const nmtResult = await papago.lookup(JAPANESWORD, { method: "nmt" })
             const feedEmbed = new Discord.MessageEmbed()
@@ -246,4 +246,4 @@ client.on("message", (message) => {
 })
 
 // 여러분의 디스코드 토큰으로 디스코드에 로그인합니다
-client.login(config.token)
+client.login(process.env.token)
