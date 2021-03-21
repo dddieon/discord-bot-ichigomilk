@@ -1,5 +1,5 @@
 // discord
-const Discord = require(`discord.js`)
+const Discord = require("discord.js")
 const client = new Discord.Client()
 const axios = require("axios")
 const dotenv = require("dotenv")
@@ -244,6 +244,13 @@ client.on("message", (message) => {
             .setColor("#ffc0cb")
             .setTitle("제목")
             .setDescription("설명")
+        message.channel.send(embed)
+    }
+    if (message.content === "앙기모찌") {
+        const embed = new Discord.MessageEmbed()
+            .setColor("#ffc0cb")
+            .setTitle("노션입니덩")
+            .setDescription("https://www.notion.so/1b138dfcbcc8481d94411d1368c2a5df")
         message.channel.send(embed)
     }
 })
